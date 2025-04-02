@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OddNotes - Editor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="note-container">
+        <h1 id="noteTitle" contenteditable="true"></h1>
+        <textarea id="noteContent" placeholder="Start writing..."></textarea>
+        <button id="saveNote">Save</button>
+        <button id="renameNote">Rename</button>
+    </div>
+
+    <script>
+        // Get the note name from the URL or default to "Untitled"
+        const params = new URLSearchParams(window.location.search);
+        let noteName = params.get("note") || "Untitled";
+
+        // Set the note title
+        const noteTitleElement = document.getElementById("noteTitle");
+        noteTitleElement.innerText = `✏️ ${noteName}`;
+
+        // Define the storage key
+        let noteKey = `note_${noteName}`;
+        const noteContent = document.getElementById("noteContent");
+
+        // Load the content from localStorage
+        noteContent.value = localStorage.getItem(noteKey) || "";
+
+        // Auto-save when typing
+        noteContent.addEventListener("input", () => {
+            localStorage.setItem(noteKey, noteContent.value);
+        });
+
+        // Save manually
+        document.getElementById("saveNote").addEventListener("click", () => {
+            localStorage.setItem(noteKey, noteContent.value);
+            alert("Note saved!");
+        });
+
+        // Rename function
+        document.getElementById("renameNote").addEventListener("click", () => {
+            let newNoteName = noteTitleElement.innerText.replace("✏️ ", "").trim();
+
+            if (!newNoteName) {
+                alert("Filename cannot be empty.");
+                return;
+            }
+
+            if (newNoteName === noteName) {
+                alert("Filename is the same. No changes made.");
+                return;
+            }
+
+            let newNoteKey = `note_${newNoteName}`;
+
+            // Move content to new filename and delete the old one
+            localStorage.setItem(newNoteKey, localStorage.getItem(noteKey));
+            localStorage.removeItem(noteKey);
+
+            // Redirect to new filename without losing content
+            window.location.href = `note.html?note=${encodeURIComponent(newNoteName)}`;
+        });
+
+        // Auto-update title on edit
+        noteTitleElement.addEventListener("input", () => {
+            let newTitle = noteTitleElement.innerText.replace("✏️ ", "").trim();
+            document.title = `OddNotes - ${newTitle || "Untitled"}`;
+        });
+    </script>
+</body>
+</html>
